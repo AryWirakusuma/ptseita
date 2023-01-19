@@ -64,9 +64,9 @@ if uploaded_file:
         
         total_output = df_grouped[output_columns].sum()
         if output_columns == "Total Nilai Jual":
-            import locale
-            locale.setlocale(locale.LC_ALL, 'id_ID.UTF-8')
-            st.subheader(f'{output_columns} : {locale.currency(total_output, grouping=True)}')
+            from babel.numbers import format_currency  
+            locale = 'id_ID'
+            st.subheader(f'{output_columns} : {format_currency(total_output, "IDR", locale=locale)}')
         else:
             st.subheader(f'{output_columns} : {total_output:.2f}')
 
