@@ -1,9 +1,10 @@
 import streamlit as st  # pip install streamlit
 import pandas as pd  # pip install pandas
-import base64  # Standard Python Module
 import plotly.express as px  # pip install plotly-express
+import base64  # Standard Python Module
 from io import StringIO, BytesIO  # Standard Python Module
 import plotly.graph_objs as go
+import numpy as np
 
 def generate_excel_download_link(df):
     # Credit Excel: https://discuss.streamlit.io/t/how-to-add-a-download-excel-csv-function-to-a-button/4474/5
@@ -28,6 +29,9 @@ st.title('Visualisasi Data 📈 \nPT. :red[SEITA] SUKSES MAKMUR')
 
 
 uploaded_file = st.file_uploader('Input data excel (XLSX)', type='xlsx')
+
+
+
 if uploaded_file:
     st.markdown('---')
 
@@ -38,6 +42,9 @@ if uploaded_file:
         sheet_names,
     )
     df = pd.read_excel(uploaded_file, sheet_name=selected_sheet, engine='openpyxl')
+    
+
+    
     st.dataframe(df)
     if selected_sheet == "Harvest Result":
         groupby_column1 = st.selectbox(
@@ -64,9 +71,9 @@ if uploaded_file:
         
         total_output = df_grouped[output_columns].sum()
         if output_columns == "Total Nilai Jual":
-            from babel.numbers import format_currency  
-            locale = 'id_ID'
-            st.subheader(f'{output_columns} : {format_currency(total_output, "IDR", locale=locale)}')
+            import locale
+            locale.setlocale(locale.LC_ALL, 'id_ID.UTF-8')
+            st.subheader(f'{output_columns} : {locale.currency(total_output, grouping=True)}')
         else:
             st.subheader(f'{output_columns} : {total_output:.2f}')
 
@@ -88,29 +95,33 @@ if uploaded_file:
             )
         st.plotly_chart(fig)
         
-        # -- DOWNLOAD SECTION
+        # -- DOWNLOAD 
+        st.subheader('Downloads:')
         generate_excel_download_link(df_grouped)
         generate_html_download_link(fig)
-        st.subheader('Downloads:')
+        
         
     elif selected_sheet == "DKA SSLA ":
         data_ke = df['Data ke-'].dropna().unique().tolist()
         data_ke = [int(x) for x in data_ke]
         data_ke_selection = st.slider('Data ke-:',
-                                min_value= min(data_ke),
-                                max_value= max(data_ke),
-                                value=(min(data_ke),max(data_ke)))
+                            min_value= min(data_ke),
+                            max_value= max(data_ke),
+                            value=(min(data_ke),max(data_ke)))
                
         blok_1 = df['BLOK'].dropna().unique().tolist()
-        groupby_column1 = st.multiselect('BLOK:',
-                                                blok_1,
-                                                default = blok_1)
+        pond_1 = df['Pond'].dropna().unique().tolist()
+        all_groupby_columns = blok_1 + pond_1
+        groupby_column1 = st.multiselect('Group by:',
+                                            all_groupby_columns,
+                                            default=blok_1
+                                        )
         
         output_colums = st.multiselect(
                     'Apa yang anda ingin analisis',
-                    ('PO4','NO2','  NH4','DO AM'),
+                    ('PO4','NO2','  NH4','DO AM','Temp AM','Temp PM','DO PM','pH AM','pH PM'),
                 )
-        mask = (df['Data ke-'].between(*data_ke_selection)) & (df['BLOK'].isin(groupby_column1))
+        mask = (df['Data ke-'].between(*data_ke_selection)) & (df['BLOK'].isin(groupby_column1) | df['Pond'].isin(groupby_column1))
         number_of_result = df[mask].shape[0]
         df_grouped = df[mask].groupby(by=['Data ke-'])[output_colums].mean()
         df_grouped = df_grouped.reset_index()
@@ -128,8 +139,45 @@ if uploaded_file:
         fig = go.Figure(data=traces, layout=layout)
         st.plotly_chart(fig)
         
+    
+         
+    elif selected_sheet == "Pakan Harian":
+        doc = df['DOC'].dropna().unique().tolist()
+        doc = [int(x) for x in doc]
+        doc_selection = st.slider('DOC',
+                                min_value= min(doc),
+                                max_value= max(doc),
+                                value=(min(doc),max(doc)))
+               
+        blok_1 = df['Blok'].dropna().unique().tolist()
+        groupby_column1 = st.multiselect('Blok:',
+                                                blok_1,
+                                                default = blok_1)
         
-        # -- DOWNLOAD SECTION
+        output_colums = st.multiselect(
+                    'Apa yang anda ingin analisis',
+                    ('ABW', 'ADG Aktual'),
+                )
+        mask = (df['DOC'].between(*doc_selection)) & (df['Blok'].isin(groupby_column1))
+        number_of_result = df[mask].shape[0]
+        df_grouped = df[mask].groupby(by=['DOC'])[output_colums].mean()
+        df_grouped = df_grouped.reset_index()
+        
+        traces = []
+        for column in output_colums:
+            trace = go.Scatter(
+                x=df_grouped['DOC'],
+                y=df_grouped[column],
+                name=column,
+                mode='lines+markers'
+            )
+            traces.append(trace)
+        layout = go.Layout(title='Line chart of '+ ','.join(output_colums), xaxis_title='DOC', yaxis_title='Value', hovermode='closest')
+        fig = go.Figure(data=traces, layout=layout)
+        st.plotly_chart(fig)
+        
+        
+        # -- DOWNLOAD 
+        st.subheader('Downloads:')
         generate_excel_download_link(df_grouped)
         generate_html_download_link(fig)
-        st.subheader('Downloads:')
