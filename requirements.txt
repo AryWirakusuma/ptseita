@@ -8,3 +8,4 @@ utf8-locale==1.0.0
 pytz==2022.1
 pytz-deprecation-shim==0.1.0.post0
 Babel==2.11.0
+altair<5
