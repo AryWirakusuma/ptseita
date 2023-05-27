@@ -97,7 +97,6 @@ if uploaded_file:
         
         # -- DOWNLOAD 
         st.subheader('Downloads:')
-        generate_excel_download_link(df_grouped)
         generate_html_download_link(fig)
         
         
@@ -141,7 +140,6 @@ if uploaded_file:
         
          # -- DOWNLOAD 
         st.subheader('Downloads:')
-        generate_excel_download_link(df_grouped)
         generate_html_download_link(fig)
         
     
@@ -184,5 +182,4 @@ if uploaded_file:
         
         # -- DOWNLOAD 
         st.subheader('Downloads:')
-        generate_excel_download_link(df_grouped)
         generate_html_download_link(fig)
