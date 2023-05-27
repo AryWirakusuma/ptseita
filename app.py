@@ -139,6 +139,11 @@ if uploaded_file:
         fig = go.Figure(data=traces, layout=layout)
         st.plotly_chart(fig)
         
+         # -- DOWNLOAD 
+        st.subheader('Downloads:')
+        generate_excel_download_link(df_grouped)
+        generate_html_download_link(fig)
+        
     
          
     elif selected_sheet == "Pakan Harian":
