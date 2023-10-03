@@ -180,6 +180,47 @@ if uploaded_file:
         st.plotly_chart(fig)
         
         
+        
         # -- DOWNLOAD 
         st.subheader('Downloads:')
         generate_html_download_link(fig)
+
+### import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+image = cv2.imread('coins.jpg')
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+blur = cv2.GaussianBlur(gray, (11, 11), 0)
+canny = cv2.Canny(blur, 30, 150, 3)
+dilated = cv2.dilate(canny, (1, 1), iterations=0)
+
+(cnt, hierarchy) = cv2.findContours(
+    dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+cv2.drawContours(rgb, cnt, -1, (0, 255, 0), 2)
+
+# Hitung jumlah koin yang terdeteksi
+num_coins = len(cnt)
+
+# Tambahkan teks jumlah koin pada gambar
+cv2.putText(rgb, f'Coins: {num_coins}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+# Tambahkan skala pada gambar
+scale_text = 'Scale: 1 cm = 5 pixels'  # Ganti dengan skala yang sesuai
+cv2.putText(rgb, scale_text, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
+# Tampilkan gambar yang sudah dihitung dengan skala
+plt.imshow(rgb)
+plt.axis('off')
+plt.show()
+
+print("Jumlah koin dalam gambar:", num_coins)
+
+
+
+
+
+
+
