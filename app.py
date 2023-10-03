@@ -276,6 +276,64 @@ plt.show()
 print("Jumlah koin dalam gambar:", num_coins)
 
 
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+image = cv2.imread('coins.jpg')
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Kurangi Gaussian Blur (gunakan kernel yang lebih kecil)
+gray_blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+# Deteksi lingkaran dengan Hough Circle Transform
+circles = cv2.HoughCircles(
+    gray_blurred, cv2.HOUGH_GRADIENT, dp=1, minDist=30, param1=50, param2=30, minRadius=0, maxRadius=0
+)
+
+if circles is not None:
+    # Konversi koordinat lingkaran ke tipe integer
+    circles = np.uint16(np.around(circles))
+
+    # Inisialisasi list untuk menyimpan lingkaran yang memenuhi kriteria
+    filtered_circles = []
+
+    # Proses setiap lingkaran yang terdeteksi
+    for circle in circles[0, :]:
+        center = (circle[0], circle[1])  # Koordinat pusat lingkaran
+        radius = circle[2]  # Radius lingkaran
+
+        # Peroleh ROI (Region of Interest) dalam lingkaran
+        roi = gray[circle[1] - radius:circle[1] + radius, circle[0] - radius:circle[0] + radius]
+
+        # Hitung luas lingkaran
+        area = np.pi * (radius ** 2)
+
+        # Filter lingkaran berdasarkan luasnya
+        if area > 1000 and area < 5000:  # Sesuaikan dengan kriteria luas yang sesuai
+            filtered_circles.append(circle)
+
+    # Gambar lingkaran yang memenuhi kriteria
+    for circle in filtered_circles:
+        center = (circle[0], circle[1])  # Koordinat pusat lingkaran
+        radius = circle[2]  # Radius lingkaran
+
+        # Gambar lingkaran di atas gambar asli
+        cv2.circle(image, center, radius, (0, 255, 0), 4)
+
+    num_coins = len(filtered_circles)
+else:
+    num_coins = 0
+
+# Tampilkan gambar dengan lingkaran yang terdeteksi
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.axis('off')
+plt.show()
+
+print("Jumlah koin dalam gambar:", num_coins)
+
+
+
 
 
 
