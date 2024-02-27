@@ -186,7 +186,7 @@ if uploaded_file:
         generate_html_download_link(fig)
 
 ### import cv2
-import numpy as np
+""" import numpy as np
 import matplotlib.pyplot as plt
 
 image = cv2.imread('coins.jpg')
